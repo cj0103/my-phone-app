@@ -19,21 +19,42 @@ jobs:
           sudo apt install -y git zip unzip openjdk-17-jdk python3-pip build-essential libssl-dev
 
       - name: Set JAVA_HOME
-        run: |
-          echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> $GITHUB_ENV
+        run: echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> $GITHUB_ENV
 
       - name: Install Buildozer
         run: |
           pip3 install --user cython==0.29.33
           pip3 install --user buildozer
-      
-      - name: Accept Android SDK licenses
+
+      # 👇 关键：手动安装 Android SDK 并接受许可证
+      - name: Setup Android SDK and accept licenses
         run: |
-          mkdir -p /home/runner/.android
-          echo "y" | sdkmanager --licenses >/dev/null 2>&1 || true
-     
+          # 创建 SDK 目录
+          mkdir -p ~/.buildozer/android/platform/android-sdk
+          cd ~/.buildozer/android/platform/android-sdk
+
+          # 下载 command line tools（官方推荐方式）
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip -q commandlinetools-linux-11076708_latest.zip
+          mkdir -p cmdline-tools/latest
+          mv cmdline-tools/* cmdline-tools/latest/ 2>/dev/null || true
+          rmdir cmdline-tools
+
+          # 设置环境变量
+          export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
+          export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
+
+          # 接受所有许可证（关键！）
+          yes | sdkmanager --licenses >/dev/null 2>&1 || true
+
+          # 安装指定版本的 build-tools 和 platform
+          sdkmanager "build-tools;34.0.0" "platforms;android-34" "ndk;25.1.8937393" >/dev/null
+
       - name: Build APK
-        run: ~/.local/bin/buildozer -v android debug
+        run: |
+          export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
+          export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
+          ~/.local/bin/buildozer -v android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
