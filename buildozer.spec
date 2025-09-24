@@ -14,9 +14,15 @@ log_level = 2
 
 [app:android]
 android.ndk = 25b
+android.sdk = 34
 android.api = 34
 android.minapi = 21
 android.archs = arm64-v8a
-p4a.bootstrap = sdl2
+
+# 👇 关键：指定稳定版 build-tools
 android.build_tools_version = 34.0.0
+
+# 👇 关键：自动接受所有许可证
 android.accept_sdk_license = True
+
+p4a.bootstrap = sdl2
