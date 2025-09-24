@@ -29,28 +29,24 @@ jobs:
       # 👇 关键：手动安装 Android SDK 并接受许可证
       - name: Setup Android SDK and accept licenses
         run: |
-          # 创建 SDK 目录
           mkdir -p ~/.buildozer/android/platform/android-sdk
           cd ~/.buildozer/android/platform/android-sdk
 
-          # 下载 command line tools
           wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
           unzip -q commandlinetools-linux-11076708_latest.zip
 
-          # 👇 新版结构：直接重命名 cmdline-tools 为 latest
           mv cmdline-tools cmdline-tools-tmp
           mkdir -p cmdline-tools
           mv cmdline-tools-tmp cmdline-tools/latest
 
-          # 设置环境变量
           export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
           export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
 
-          # 接受所有许可证
           yes | sdkmanager --licenses >/dev/null 2>&1 || true
-
-          # 安装指定组件
           sdkmanager "build-tools;34.0.0" "platforms;android-34" "ndk;25.1.8937393" >/dev/null
+
+          # 👇 关键修复：创建 tools 软链接
+          ln -s $ANDROID_HOME/cmdline-tools/latest $ANDROID_HOME/tools
       
       - name: Build APK
         run: |
