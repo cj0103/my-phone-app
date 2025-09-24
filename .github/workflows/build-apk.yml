@@ -33,23 +33,25 @@ jobs:
           mkdir -p ~/.buildozer/android/platform/android-sdk
           cd ~/.buildozer/android/platform/android-sdk
 
-          # 下载 command line tools（官方推荐方式）
+          # 下载 command line tools
           wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
           unzip -q commandlinetools-linux-11076708_latest.zip
-          mkdir -p cmdline-tools/latest
-          mv cmdline-tools/* cmdline-tools/latest/ 2>/dev/null || true
-          rmdir cmdline-tools
+
+          # 👇 新版结构：直接重命名 cmdline-tools 为 latest
+          mv cmdline-tools cmdline-tools-tmp
+          mkdir -p cmdline-tools
+          mv cmdline-tools-tmp cmdline-tools/latest
 
           # 设置环境变量
           export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
           export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
 
-          # 接受所有许可证（关键！）
+          # 接受所有许可证
           yes | sdkmanager --licenses >/dev/null 2>&1 || true
 
-          # 安装指定版本的 build-tools 和 platform
+          # 安装指定组件
           sdkmanager "build-tools;34.0.0" "platforms;android-34" "ndk;25.1.8937393" >/dev/null
-
+      
       - name: Build APK
         run: |
           export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
